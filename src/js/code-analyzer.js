@@ -5,3 +5,5 @@ const parseCode = (codeToParse) => {
 };
 
 export {parseCode};
+
+// This is a comment
