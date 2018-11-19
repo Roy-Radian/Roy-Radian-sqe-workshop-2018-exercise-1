@@ -2,7 +2,12 @@ import {parseCode} from './code-analyzer';
 
 //TODO: Implement a[i], else, else if
 
-const isNull = (x: any): x is null => x === null;
+const valid = (x: any): x is null => x != null && x.hasOwnProperty("type");
+
+interface WithType {
+    type: string;
+}
+const isWithType = (x: object): x is WithType => x != null && x.hasOwnProperty("type");
 
 interface CodePostition {
     line: number;
@@ -20,7 +25,7 @@ interface Program {
     sourceType: string;
     loc: Location;
 }
-const isProgram = (x: any): x is Program => !isNull(x) && x.type == "Program";
+const isProgram = (x: object): x is Program => isWithType(x) ? x.type == "Program" : false;
 
 type Expression = ExpressionStatement | FunctionDeclaration | VariableDeclaration | ValueExpression | AssignmentExpression | ReturnStatement | WhileStatement | DoWhileStatement | ForStatement |
     BreakStatement | IfStatement;
@@ -32,14 +37,14 @@ interface ExpressionStatement {
     expression: Expression;
     loc: Location
 }
-const isExpressionStatement = (x: any): x is ExpressionStatement => !isNull(x) && x.type === "ExpressionStatement";
+const isExpressionStatement = (x: any): x is ExpressionStatement => isWithType(x) ? x.type === "ExpressionStatement" : false;
 
 interface Identifier {
     type: "Identifier";
     name: string;
     loc: Location;
 }
-const isIdentifier = (x: any): x is Identifier => !isNull(x) && x.type === "Identifier";
+const isIdentifier = (x: any): x is Identifier => isWithType(x) ? x.type === "Identifier" : false;
 
 interface Literal {
     type: "Literal";
@@ -47,7 +52,7 @@ interface Literal {
     raw: string;
     loc: Location;
 }
-const isLiteral = (x: any): x is Literal => !isNull(x) && x.type === "Literal";
+const isLiteral = (x: any): x is Literal => isWithType(x) ? x.type === "Literal" : false;
 
 type BinaryOperator = "+" | "-" | "*" | "/" | ">" | "<" | ">=" | "<=" | "==" | "===" | "**";
 interface BinaryExpression {
@@ -57,7 +62,7 @@ interface BinaryExpression {
     right: ValueExpression;
     loc: Location;
 }
-const isBinaryExpression = (x: any): x is BinaryExpression => !isNull(x) && x.type === "BinaryExpression";
+const isBinaryExpression = (x: any): x is BinaryExpression => isWithType(x) ? x.type === "BinaryExpression" : false;
 
 type UnaryOperator = "!" | "-" | "+";
 interface UnaryExpression {
@@ -67,7 +72,7 @@ interface UnaryExpression {
     prefix: boolean;
     loc: Location;
 }
-const isUnaryExpression = (x: any): x is UnaryExpression => !isNull(x) && x.type === "UnaryExpression";
+const isUnaryExpression = (x: any): x is UnaryExpression => isWithType(x) ? x.type === "UnaryExpression" : false;
 
 type ValueExpression = Literal | Identifier | BinaryExpression | UnaryExpression | UpdateExpression | ConditionalExpression | MemberExpression;
 const isValueExpression = (x: any): x is ValueExpression => isLiteral(x) || isIdentifier(x) || isBinaryExpression(x) || isUnaryExpression(x) || isUpdateExpression(x) || isConditionalExpression(x);
@@ -77,7 +82,7 @@ interface BlockStatement {
     body: Expression[];
     loc: Location;
 }
-const isBlockStatement = (x: any): x is BlockStatement => !isNull(x) && x.type === "BlockStatement";
+const isBlockStatement = (x: any): x is BlockStatement => isWithType(x) ? x.type === "BlockStatement" : false;
 
 type Body = BlockStatement | Expression;
 const isBody = (x: any): x is Body => isBlockStatement(x) || isExpression(x);
@@ -92,7 +97,7 @@ interface FunctionDeclaration {
     async: boolean;
     loc: Location;
 }
-const isFunctionDeclaration = (x: any): x is FunctionDeclaration => !isNull(x) && x.type === "FunctionDeclaration";
+const isFunctionDeclaration = (x: any): x is FunctionDeclaration => isWithType(x) ? x.type === "FunctionDeclaration" : false;
 
 interface VariableDeclarator {
     type: "VariableDeclarator";
@@ -100,7 +105,7 @@ interface VariableDeclarator {
     init: ValueExpression;
     loc: Location;
 }
-const isVariableDeclarator = (x: any): x is VariableDeclarator => !isNull(x) && x.type === "VariableDeclarator";
+const isVariableDeclarator = (x: any): x is VariableDeclarator => isWithType(x) ? x.type === "VariableDeclarator" : false;
 
 interface VariableDeclaration {
     type: "VariableDeclaration";
@@ -108,7 +113,7 @@ interface VariableDeclaration {
     kind: "var" | "let";
     loc: Location;
 }
-const isVariableDeclaration = (x: any): x is VariableDeclaration => !isNull(x) && x.type === "VariableDeclaration";
+const isVariableDeclaration = (x: any): x is VariableDeclaration => isWithType(x) ? x.type === "VariableDeclaration" : false;
 
 type AssignmentOperator = "=" | "+=" | "-=" | "*=" | "/=";
 interface AssignmentExpression {
@@ -118,7 +123,7 @@ interface AssignmentExpression {
     right: ValueExpression;
     loc: Location;
 }
-const isAssignmentExpression = (x: any): x is AssignmentExpression => !isNull(x) && x.type === "AssignmentExpression";
+const isAssignmentExpression = (x: any): x is AssignmentExpression => isWithType(x) ? x.type === "AssignmentExpression" : false;
 
 interface UpdateExpression {
     type: "UpdateExpression";
@@ -127,7 +132,7 @@ interface UpdateExpression {
     prefix: boolean;
     loc: Location;
 }
-const isUpdateExpression = (x: any): x is UpdateExpression => !isNull(x) && x.type === "UpdateExpression";
+const isUpdateExpression = (x: any): x is UpdateExpression => isWithType(x) ? x.type === "UpdateExpression" : false;
 
 interface ConditionalExpression {
     type: "ConditionalExpression";
@@ -136,7 +141,7 @@ interface ConditionalExpression {
     alternate: ValueExpression;
     loc: Location;
 }
-const isConditionalExpression = (x: any): x is ConditionalExpression => !isNull(x) && x.type === "ConditionalExpression";
+const isConditionalExpression = (x: any): x is ConditionalExpression => isWithType(x) ? x.type === "ConditionalExpression" : false;
 
 interface MemberExpression {
     type: "MemberExpression";
@@ -145,14 +150,14 @@ interface MemberExpression {
     property: ValueExpression;
     loc: Location;
 }
-const isMemberExpression = (x: any): x is MemberExpression => !isNull(x) && x.type === "MemberExpression";
+const isMemberExpression = (x: any): x is MemberExpression => isWithType(x) ? x.type === "MemberExpression" : false;
 
 interface ReturnStatement {
     type: "ReturnStatement";
     argument: ValueExpression;
     loc: Location;
 }
-const isReturnStatement = (x: any): x is ReturnStatement => !isNull(x) && x.type === "ReturnStatement";
+const isReturnStatement = (x: any): x is ReturnStatement => isWithType(x) ? x.type === "ReturnStatement" : false;
 
 interface WhileStatement {
     type: "WhileStatement";
@@ -160,7 +165,7 @@ interface WhileStatement {
     body: BlockStatement;
     loc: Location;
 }
-const isWhileStatement = (x: any) : x is WhileStatement => !isNull(x) && x.type === "WhileStatement";
+const isWhileStatement = (x: any) : x is WhileStatement => isWithType(x) ? x.type === "WhileStatement" : false;
 
 interface DoWhileStatement {
     type: "DoWhileStatement";
@@ -168,7 +173,7 @@ interface DoWhileStatement {
     body: BlockStatement;
     loc: Location;
 }
-const isDoWhileStatement = (x: any): x is DoWhileStatement => !isNull(x) && x.type === "DoWhileStatement";
+const isDoWhileStatement = (x: any): x is DoWhileStatement => isWithType(x) ? x.type === "DoWhileStatement" : false;
 
 interface ForStatement {
     type: "ForStatement";
@@ -178,14 +183,14 @@ interface ForStatement {
     body: BlockStatement;
     loc: Location;
 }
-const isForStatement = (x: any): x is ForStatement => !isNull(x) && x.type === "ForStatement";
+const isForStatement = (x: any): x is ForStatement => isWithType(x) ? x.type === "ForStatement" : false;
 
 interface BreakStatement {
     type: "BreakStatement";
     label: any;
     loc: Location;
 }
-const isBreakStatement = (x: any): x is BreakStatement => !isNull(x) && x.type === "BreakStatement";
+const isBreakStatement = (x: any): x is BreakStatement => isWithType(x) ? x.type === "BreakStatement" : false;
 
 
 interface IfStatement {
@@ -195,45 +200,41 @@ interface IfStatement {
     alternate: Body | null;
     loc: Location;
 }
-const isIfStatement = (x: any): x is IfStatement => !isNull(x) && x.type === "IfStatement";
+const isIfStatement = (x: any): x is IfStatement => isWithType(x) ? x.type === "IfStatement" : false;
 
 const EMPTY = "";
-interface TableEntry {
+interface AnalyzedLine {
     line: number;
     type: string;
     name: string;
     condition: string;
     value: string;
 }
-const tableEntryToHtml = (tbl: TableEntry): string =>
-    `<tr><td>${tbl.line}</td><td>${tbl.type}</td><td>${tbl.name}</td><td>${tbl.condition}</td><td>${tbl.value}</td></tr>`;
 
+const expressionToAnalyzedLines = (exp: Expression): AnalyzedLine[] =>
+    isExpressionStatement(exp) ? expressionStatementToAnalyzedLines(exp) :
+    isFunctionDeclaration(exp) ? functionDeclarationToAnalyzedLines(exp) :
+    isVariableDeclaration(exp) ? variableDeclarationToAnalyzedLines(exp) :
+    isValueExpression(exp) ? valueExpressionToAnalyzedLines(exp) :
+    isAssignmentExpression(exp) ? assignmentExpressionToAnalyzedLines(exp) :
+    isReturnStatement(exp) ? returnStatementToAnalyzedLines(exp) :
+    isWhileStatement(exp) ? whileStatementToAnalyzedLines(exp) :
+    isDoWhileStatement(exp) ? doWhileStatementToAnalyzedLines(exp) :
+    isForStatement(exp) ? forStatementToAnalyzedLines(exp) :
+    isBreakStatement(exp) ? breakStatementToAnalyzedLines(exp) :
+    isIfStatement(exp) ? ifStatementToAnalyzedLines(exp) :
+    conditionalExpressionToAnalyzedLines(exp);
 
-const expressionToTblEntries = (exp: Expression): TableEntry[] =>
-    isExpressionStatement(exp) ? expressionStatementToTblEntries(exp) :
-    isFunctionDeclaration(exp) ? functionDeclarationToTblEntries(exp) :
-    isVariableDeclaration(exp) ? variableDeclarationToTblEntries(exp) :
-    isValueExpression(exp) ? valueExpressionToTblEntries(exp) :
-    isAssignmentExpression(exp) ? assignmentExpressionToTblEntries(exp) :
-    isReturnStatement(exp) ? returnStatementToTblEntries(exp) :
-    isWhileStatement(exp) ? whileStatementToTblEntries(exp) :
-    isDoWhileStatement(exp) ? doWhileStatementToTblEntries(exp) :
-    isForStatement(exp) ? forStatementToTblEntries(exp) :
-    isBreakStatement(exp) ? breakStatementToTblEntries(exp) :
-    isIfStatement(exp) ? ifStatementToTblEntries(exp) :
-    conditionalExpressionToTblEntries(exp);
+const expressionStatementToAnalyzedLines = (expStatement: ExpressionStatement): AnalyzedLine[] =>
+    expressionToAnalyzedLines(expStatement.expression);
 
-
-const expressionStatementToTblEntries = (expStatement: ExpressionStatement): TableEntry[] =>
-    expressionToTblEntries(expStatement.expression);
-
-const functionDeclarationToTblEntries = (func: FunctionDeclaration): TableEntry[] =>
+const functionDeclarationToAnalyzedLines = (func: FunctionDeclaration): AnalyzedLine[] =>
     [{line: func.loc.start.line, type: func.type, name: func.id.name, condition: EMPTY, value: EMPTY}];
 
-const variableDeclarationToTblEntries = (varDec: VariableDeclaration): TableEntry[] =>
-    varDec.declarations.map((varDeclarator) => variableDeclaratorToTblEntry(varDeclarator));
+const variableDeclarationToAnalyzedLines = (varDec: VariableDeclaration): AnalyzedLine[] =>
+    varDec.declarations.map((varDeclarator) => variableDeclaratorToAnalyzedLine(varDeclarator));
 
-const variableDeclaratorToTblEntry = (varDec: VariableDeclarator): TableEntry =>
+const variableDeclaratorToAnalyzedLine = (varDec: VariableDeclarator): AnalyzedLine =>
     ({line: varDec.loc.start.line, type: varDec.type, name: varDec.id.name, condition: EMPTY, value: getValOfInit(varDec.init)});
 
 const getValOfInit = (init: ValueExpression | null): string =>
@@ -252,106 +253,99 @@ const getValOfValExp = (v: ValueExpression): string =>
 const getValOfConditionalExpression = (cond: ConditionalExpression): string =>
     `(${getValOfValExp(cond.test)} ? ${getValOfValExp(cond.consequent)} : ${getValOfValExp(cond.alternate)}`;
 
-const valueExpressionToTblEntries = (val: ValueExpression): TableEntry[] =>
-    isLiteral(val) ? literalExpressionToTblEntries(val) :
-    isIdentifier(val) ? identifierToTblEntries(val) :
-    isBinaryExpression(val) ? binaryExpressionToTblEntries(val) :
-    isUnaryExpression(val) ? unaryExpressionToTblEntries(val) :
-    isUpdateExpression(val) ? updateExpressionToTblEntries(val) :
-    isConditionalExpression(val) ? conditionalExpressionToTblEntries(val) :
-    memberExpressionToTblEntries(val);
+const valueExpressionToAnalyzedLines = (val: ValueExpression): AnalyzedLine[] =>
+    isLiteral(val) ? literalExpressionToAnalyzedLines(val) :
+    isIdentifier(val) ? identifierToAnalyzedLines(val) :
+    isBinaryExpression(val) ? binaryExpressionToAnalyzedLines(val) :
+    isUnaryExpression(val) ? unaryExpressionToAnalyzedLines(val) :
+    isUpdateExpression(val) ? updateExpressionToAnalyzedLines(val) :
+    isConditionalExpression(val) ? conditionalExpressionToAnalyzedLines(val) :
+    memberExpressionToAnalyzedLines(val);
 
-const literalExpressionToTblEntries = (l: Literal): TableEntry[] =>
+const literalExpressionToAnalyzedLines = (l: Literal): AnalyzedLine[] =>
     [{line: l.loc.start.line, type: l.type, name: EMPTY, condition: EMPTY, value: l.raw}];
 
-const identifierToTblEntries = (i: Identifier): TableEntry[] =>
+const identifierToAnalyzedLines = (i: Identifier): AnalyzedLine[] =>
     [{line: i.loc.start.line, type: i.type, name: i.name, condition: EMPTY, value: EMPTY}];
 
-const binaryExpressionToTblEntries = (b: BinaryExpression): TableEntry[] =>
+const binaryExpressionToAnalyzedLines = (b: BinaryExpression): AnalyzedLine[] =>
     [{line: b.loc.start.line, type: b.type, name: EMPTY, condition: EMPTY, value: getValOfValExp(b)}];
 
-const unaryExpressionToTblEntries = (u: UnaryExpression): TableEntry[] =>
+const unaryExpressionToAnalyzedLines = (u: UnaryExpression): AnalyzedLine[] =>
     [{line: u.loc.start.line, type: u.type, name: EMPTY, condition: EMPTY, value: getValOfValExp(u)}];
 
-const updateExpressionToTblEntries = (u: UpdateExpression): TableEntry[] =>
+const updateExpressionToAnalyzedLines = (u: UpdateExpression): AnalyzedLine[] =>
     [{line: u.loc.start.line, type: u.type, name: EMPTY, condition: EMPTY, value: getValOfValExp(u)}];
 
-const assignmentExpressionToTblEntries = (assignmentExpression: AssignmentExpression): TableEntry[] =>
+const assignmentExpressionToAnalyzedLines = (assignmentExpression: AssignmentExpression): AnalyzedLine[] =>
     [{line: assignmentExpression.loc.start.line, type: assignmentExpression.type, name: assignmentExpression.left.name, condition: EMPTY, value: getValOfValExp(assignmentExpression.right)}];
 
-const returnStatementToTblEntries = (ret: ReturnStatement): TableEntry[] =>
+const returnStatementToAnalyzedLines = (ret: ReturnStatement): AnalyzedLine[] =>
     [{line: ret.loc.start.line, type: ret.type, name: EMPTY, condition: EMPTY, value: getValOfValExp(ret.argument)}];
 
-const whileStatementToTblEntries = (whileStatement: WhileStatement): TableEntry[] =>
+const whileStatementToAnalyzedLines = (whileStatement: WhileStatement): AnalyzedLine[] =>
     [{line: whileStatement.loc.start.line, type: whileStatement.type, name: EMPTY, condition: getValOfValExp(whileStatement.test), value: EMPTY}];
 
-const forStatementToTblEntries = (forStatement: ForStatement): TableEntry[] =>
+const forStatementToAnalyzedLines = (forStatement: ForStatement): AnalyzedLine[] =>
     [{line: forStatement.loc.start.line, type: forStatement.type, name: EMPTY, condition: getValOfValExp(forStatement.test), value: EMPTY}];
 
-const breakStatementToTblEntries = (breakStatement: BreakStatement): TableEntry[] =>
+const breakStatementToAnalyzedLines = (breakStatement: BreakStatement): AnalyzedLine[] =>
     [{line: breakStatement.loc.start.line, type: breakStatement.type, name: EMPTY, condition: EMPTY, value: EMPTY}];
 
-const ifStatementToTblEntries = (ifStatement: IfStatement): TableEntry[] =>
+const ifStatementToAnalyzedLines = (ifStatement: IfStatement): AnalyzedLine[] =>
     [{line: ifStatement.loc.start.line, type: ifStatement.type, name: EMPTY, condition: getValOfValExp(ifStatement.test), value: EMPTY}];
 
-const conditionalExpressionToTblEntries = (conditionalExpression: ConditionalExpression): TableEntry[] =>
+const elseToAnalyzedLines = (alt: Body): AnalyzedLine[] =>
+    [{line: alt.loc.start.line, type: "else", name: EMPTY, condition: EMPTY, value: EMPTY}];
+
+const conditionalExpressionToAnalyzedLines = (conditionalExpression: ConditionalExpression): AnalyzedLine[] =>
     [{line: conditionalExpression.loc.start.line, type: conditionalExpression.type, name: EMPTY, condition: getValOfValExp(conditionalExpression.test), value: EMPTY}];
 
-const memberExpressionToTblEntries = (memberExpression: MemberExpression): TableEntry[] =>
+const memberExpressionToAnalyzedLines = (memberExpression: MemberExpression): AnalyzedLine[] =>
     [{line: memberExpression.loc.start.line, type: memberExpression.type, name: EMPTY, condition: EMPTY, value: EMPTY}];
 
-const doWhileStatementToTblEntries = (doWhileStatement: DoWhileStatement): TableEntry[] =>
+const doWhileStatementToAnalyzedLines = (doWhileStatement: DoWhileStatement): AnalyzedLine[] =>
     [{line: doWhileStatement.loc.start.line, type: doWhileStatement.type, name: EMPTY, condition: getValOfValExp(doWhileStatement.test), value: EMPTY}];
 
-const notAProgram: string = "<table><tr><td>Not a program!</td></tr>";
-const headers: string = "<tr><td>Line</td><td>Type</td><td>Name</td><td>Condition</td><td>Value</td></tr>";
-const concatStringTableEntries = (prev: string, curr: string): string => prev + curr;
-const constructTable = (program: any): string =>
-    isProgram(program) ? tableEntriesIntoTable(programToTableEntries(program)) : //programToTableEntries(program).map((tblEntry: TableEntry): string => tblEntry.toHTML()).reduce(concatStringTableEntries) :
-    notAProgram;
+const concatAnalyzedLines = (prev: AnalyzedLine[], curr: AnalyzedLine[]): AnalyzedLine[] => prev.concat(curr);
+const programToAnalyzedLines = (program: Program): AnalyzedLine[] =>
+    program.body.length > 0 ? program.body.map((exp: Expression) => getAllAnalyzedLines(exp)).reduce(concatAnalyzedLines) : [];
 
-const tableEntriesIntoTable = (entries: TableEntry[]): string =>
-    "<table>" + headers + entries.map((tblEntry: TableEntry): string => tableEntryToHtml(tblEntry)).reduce(concatStringTableEntries) + "</table>";
+const getAllAnalyzedLines = (exp: Expression): AnalyzedLine[] =>
+    isExpressionStatement(exp) ? getAllAnalyzedLines(exp.expression) :
+    isFunctionDeclaration(exp) ? getAnalyzedLinesFromFunctionDeclaration(exp) :
+    isVariableDeclaration(exp) ? variableDeclarationToAnalyzedLines(exp) :
+    isLiteral(exp) ? literalExpressionToAnalyzedLines(exp) :
+    isIdentifier(exp) ? identifierToAnalyzedLines(exp) :
+    isValueExpression(exp) ? valueExpressionToAnalyzedLines(exp) :
+    isAssignmentExpression(exp) ? assignmentExpressionToAnalyzedLines(exp) :
+    isReturnStatement(exp) ? returnStatementToAnalyzedLines(exp) :
+    isWhileStatement(exp) ? getAnalyzedLinesFromWhileStatement(exp) :
+    isDoWhileStatement(exp) ? getAnalyzedLinesFromDoWhileStatement(exp) :
+    isForStatement(exp) ? getAnalyzedLinesFromForStatement(exp) :
+    isBreakStatement(exp) ? breakStatementToAnalyzedLines(exp) :
+    getAnalyzedLinesFromIfStatement(exp);
 
-const concatTableEntries = (prev: TableEntry[], curr: TableEntry[]): TableEntry[] => prev.concat(curr);
-const programToTableEntries = (program: Program): TableEntry[] =>
-    program.body.map((exp: Expression) => getAllTableEntries(exp)).reduce(concatTableEntries);
+const getAnalyzedLinesFromBody = (b: Body): AnalyzedLine[] =>
+    isBlockStatement(b) ? b.body.map((exp: Expression) => getAllAnalyzedLines(exp)).reduce(concatAnalyzedLines) :
+        getAllAnalyzedLines(b);
 
-const getAllTableEntries = (exp: Expression): TableEntry[] =>
-    isExpressionStatement(exp) ? getAllTableEntries(exp.expression) :
-    isFunctionDeclaration(exp) ? getTableEntriesFromFunctionDeclaration(exp) :
-    isVariableDeclaration(exp) ? variableDeclarationToTblEntries(exp) :
-    isLiteral(exp) ? literalExpressionToTblEntries(exp) :
-    isIdentifier(exp) ? identifierToTblEntries(exp) :
-    isValueExpression(exp) ? valueExpressionToTblEntries(exp) :
-    isAssignmentExpression(exp) ? assignmentExpressionToTblEntries(exp) :
-    isReturnStatement(exp) ? returnStatementToTblEntries(exp) :
-    isWhileStatement(exp) ? getTableEntriesFromWhileStatement(exp) :
-    isDoWhileStatement(exp) ? getTableEntriesFromDoWhileStatement(exp) :
-    isForStatement(exp) ? getTableEntriesFromForStatement(exp) :
-    isBreakStatement(exp) ? breakStatementToTblEntries(exp) :
-    getTableEntriesFromIfStatement(exp);
+const getAnalyzedLinesFromFunctionDeclaration = (func: FunctionDeclaration): AnalyzedLine[] =>
+    functionDeclarationToAnalyzedLines(func).concat(getAnalyzedLinesFromBody(func.body));
 
-const getTableEntriesFromBody = (b: Body): TableEntry[] =>
-    isBlockStatement(b) ? b.body.map((exp: Expression) => getAllTableEntries(exp)).reduce(concatTableEntries) :
-        getAllTableEntries(b);
+const getAnalyzedLinesFromWhileStatement = (whileStatement: WhileStatement): AnalyzedLine[] =>
+    whileStatementToAnalyzedLines(whileStatement).concat(getAnalyzedLinesFromBody(whileStatement.body));
 
-const getTableEntriesFromFunctionDeclaration = (func: FunctionDeclaration): TableEntry[] =>
-    functionDeclarationToTblEntries(func).concat(getTableEntriesFromBody(func.body));
+const getAnalyzedLinesFromDoWhileStatement = (doWhileStatement: DoWhileStatement): AnalyzedLine[] =>
+    doWhileStatementToAnalyzedLines(doWhileStatement).concat(getAnalyzedLinesFromBody(doWhileStatement.body));
 
-const getTableEntriesFromWhileStatement = (whileStatement: WhileStatement): TableEntry[] =>
-    whileStatementToTblEntries(whileStatement).concat(getTableEntriesFromBody(whileStatement.body));
+const getAnalyzedLinesFromForStatement = (forStatement: ForStatement): AnalyzedLine[] =>
+    forStatementToAnalyzedLines(forStatement).concat(getAnalyzedLinesFromBody(forStatement.body));
 
-const getTableEntriesFromDoWhileStatement = (doWhileStatement: DoWhileStatement): TableEntry[] =>
-    doWhileStatementToTblEntries(doWhileStatement).concat(getTableEntriesFromBody(doWhileStatement.body));
+const getAnalyzedLinesFromIfStatement = (ifStatement: IfStatement): AnalyzedLine[] =>
+    ifStatementToAnalyzedLines(ifStatement).concat(getAnalyzedLinesFromBody(ifStatement.consequent)).concat(getAnalyzedLinesFromAlternate(ifStatement.alternate));
 
-const getTableEntriesFromForStatement = (forStatement: ForStatement): TableEntry[] =>
-    forStatementToTblEntries(forStatement).concat(getTableEntriesFromBody(forStatement.body));
+const getAnalyzedLinesFromAlternate = (altBody: Body | null) : AnalyzedLine[] =>
+    isBody(altBody) ? elseToAnalyzedLines(altBody).concat(getAnalyzedLinesFromBody(altBody)) : [];
 
-const getTableEntriesFromIfStatement = (ifStatement: IfStatement): TableEntry[] =>
-    ifStatementToTblEntries(ifStatement).concat(getTableEntriesFromBody(ifStatement.consequent)).concat(getTableEntriesFromAlternate(ifStatement.alternate));
-
-const getTableEntriesFromAlternate = (altBody: Body | null) : TableEntry[] =>
-    isBody(altBody) ? getTableEntriesFromBody(altBody) : [];
-
-export {constructTable};
+export {AnalyzedLine, isProgram, programToAnalyzedLines};

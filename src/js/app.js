@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import {parseCode} from './code-analyzer';
-import {constructTable} from './expression-analyzer';
+import {constructTable} from './html-visualisation';
 
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
