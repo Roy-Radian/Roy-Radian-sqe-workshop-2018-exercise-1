@@ -25,10 +25,19 @@ interface Program {
 }
 const isProgram = (x: object): x is Program => isWithType(x) ? x.type == 'Program' : false;
 
-type Expression = ExpressionStatement | FunctionDeclaration | VariableDeclaration | ValueExpression | AssignmentExpression | ReturnStatement | WhileStatement | DoWhileStatement | ForStatement |
-    BreakStatement | IfStatement;
-const isExpression = (x: any): x is Expression => isExpressionStatement(x) || isFunctionDeclaration(x) || isVariableDeclaration(x) || isAssignmentExpression(x) || isReturnStatement(x) || isWhileStatement(x) ||
-    isDoWhileStatement(x) || isForStatement(x) || isBreakStatement(x) || isIfStatement(x);
+type LoopStatement = WhileStatement | DoWhileStatement | ForStatement;
+const isLoopStatement = (x: object): x is LoopStatement => isWhileStatement(x) || isDoWhileStatement(x) || isForStatement(x);
+
+type AtomicExpression = VariableDeclaration | AssignmentExpression | ReturnStatement | BreakStatement;
+const isAtomicExpression = (x: object): x is AtomicExpression => isVariableDeclaration(x) || isAssignmentExpression(x) || isReturnStatement(x) ||
+    isBreakStatement(x);
+
+type CompoundExpression = ExpressionStatement | FunctionDeclaration | ValueExpression | LoopStatement | IfStatement;
+const isCompoundExpression = (x: object): x is CompoundExpression => isExpressionStatement(x) || isFunctionDeclaration(x) || isValueExpression(x) ||
+    isLoopStatement(x) || isIfStatement(x);
+
+type Expression = AtomicExpression | CompoundExpression;
+const isExpression = (x: object): x is Expression => isAtomicExpression(x) || isCompoundExpression(x);
 
 interface ExpressionStatement {
     type: 'ExpressionStatement';
@@ -72,8 +81,11 @@ interface UnaryExpression {
 }
 const isUnaryExpression = (x: any): x is UnaryExpression => isWithType(x) ? x.type === 'UnaryExpression' : false;
 
-type ValueExpression = Literal | Identifier | BinaryExpression | UnaryExpression | UpdateExpression | ConditionalExpression | MemberExpression;
-const isValueExpression = (x: any): x is ValueExpression => isLiteral(x) || isIdentifier(x) || isBinaryExpression(x) || isUnaryExpression(x) || isUpdateExpression(x) || isConditionalExpression(x);
+type ComputationExpression = BinaryExpression | UnaryExpression | UpdateExpression;
+const isComputationExpressoin = (x: object): x is ComputationExpression => isBinaryExpression(x) || isUnaryExpression(x) || isUpdateExpression(x);
+
+type ValueExpression = Literal | Identifier | ComputationExpression | ConditionalExpression | MemberExpression;
+const isValueExpression = (x: any): x is ValueExpression => isLiteral(x) || isIdentifier(x) || isComputationExpressoin(x) || isConditionalExpression(x) || isMemberExpression(x);
 
 interface BlockStatement {
     type: 'BlockStatement';
@@ -211,8 +223,8 @@ interface AnalyzedLine {
     value: string;
 }
 
-const expressionToAnalyzedLines = (exp: Expression): AnalyzedLine[] =>
-    isExpressionStatement(exp) ? expressionStatementToAnalyzedLines(exp) :
+/*const expressionToAnalyzedLines = (exp: Expression): AnalyzedLine[] =>
+    //isExpressionStatement(exp) ? expressionStatementToAnalyzedLines(exp) :
     isFunctionDeclaration(exp) ? functionDeclarationToAnalyzedLines(exp) :
     isVariableDeclaration(exp) ? variableDeclarationToAnalyzedLines(exp) :
     isValueExpression(exp) ? valueExpressionToAnalyzedLines(exp) :
@@ -223,10 +235,10 @@ const expressionToAnalyzedLines = (exp: Expression): AnalyzedLine[] =>
     isForStatement(exp) ? forStatementToAnalyzedLines(exp) :
     isBreakStatement(exp) ? breakStatementToAnalyzedLines(exp) :
     isIfStatement(exp) ? ifStatementToAnalyzedLines(exp) :
-    conditionalExpressionToAnalyzedLines(exp);
+    conditionalExpressionToAnalyzedLines(exp);*/
 
-const expressionStatementToAnalyzedLines = (expStatement: ExpressionStatement): AnalyzedLine[] =>
-    expressionToAnalyzedLines(expStatement.expression);
+/*const expressionStatementToAnalyzedLines = (expStatement: ExpressionStatement): AnalyzedLine[] =>
+    expressionToAnalyzedLines(expStatement.expression);*/
 
 const functionDeclarationToAnalyzedLines = (func: FunctionDeclaration): AnalyzedLine[] =>
     [{line: func.loc.start.line, type: func.type, name: func.id.name, condition: EMPTY, value: EMPTY}];
@@ -247,11 +259,14 @@ const getValOfInit = (init: ValueExpression | null): string =>
 const getValOfValExp = (v: ValueExpression): string =>
     isLiteral(v) ? v.raw :
     isIdentifier(v) ? v.name :
-    isBinaryExpression(v) ? getValOfValExp(v.left) + ' ' + v.operator + ' ' + getValOfValExp(v.right) :
-    isUnaryExpression(v) ? (v.prefix ? v.operator + getValOfValExp(v.argument) : getValOfValExp(v.argument) + v.operator) :
-    isUpdateExpression(v) ? (v.prefix ? v.operator + getValOfValExp(v.argument) : getValOfValExp(v.argument) + v.operator) :
+    isComputationExpressoin(v) ? getValOfComputationExpression(v) :
     isConditionalExpression(v) ? getValOfConditionalExpression(v) :
     getValOfValExp(v.object) + '[' + getValOfValExp(v.property) + ']';
+
+const getValOfComputationExpression = (c: ComputationExpression): string =>
+    isBinaryExpression(c) ? getValOfValExp(c.left) + ' ' + c.operator + ' ' + getValOfValExp(c.right) :
+    isUnaryExpression(c) ? c.operator + getValOfValExp(c.argument) : // If there were non-prefix unary expressions: (v.prefix ? v.operator + getValOfValExp(v.argument) : getValOfValExp(v.argument) + v.operator) :
+    (c.prefix ? c.operator + getValOfValExp(c.argument) : getValOfValExp(c.argument) + c.operator);
 
 const getValOfConditionalExpression = (cond: ConditionalExpression): string =>
     `(${getValOfValExp(cond.test)} ? ${getValOfValExp(cond.consequent)} : ${getValOfValExp(cond.alternate)})`;
@@ -259,11 +274,14 @@ const getValOfConditionalExpression = (cond: ConditionalExpression): string =>
 const valueExpressionToAnalyzedLines = (val: ValueExpression): AnalyzedLine[] =>
     isLiteral(val) ? literalExpressionToAnalyzedLines(val) :
     isIdentifier(val) ? identifierToAnalyzedLines(val) :
-    isBinaryExpression(val) ? binaryExpressionToAnalyzedLines(val) :
-    isUnaryExpression(val) ? unaryExpressionToAnalyzedLines(val) :
-    isUpdateExpression(val) ? updateExpressionToAnalyzedLines(val) :
+    isComputationExpressoin(val) ? computationExpressionToAnalyzedLines(val) :
     isConditionalExpression(val) ? conditionalExpressionToAnalyzedLines(val) :
     memberExpressionToAnalyzedLines(val);
+
+const computationExpressionToAnalyzedLines = (comp: ComputationExpression): AnalyzedLine[] =>
+    isUpdateExpression(comp) ? updateExpressionToAnalyzedLines(comp) :
+    isBinaryExpression(comp) ? binaryExpressionToAnalyzedLines(comp) :
+    unaryExpressionToAnalyzedLines(comp);
 
 const literalExpressionToAnalyzedLines = (l: Literal): AnalyzedLine[] =>
     [{line: l.loc.start.line, type: l.type, name: EMPTY, condition: EMPTY, value: l.raw}];
@@ -311,7 +329,7 @@ const conditionalExpressionToAnalyzedLines = (conditionalExpression: Conditional
     [{line: conditionalExpression.loc.start.line, type: conditionalExpression.type, name: EMPTY, condition: getValOfValExp(conditionalExpression.test), value: EMPTY}];
 
 const memberExpressionToAnalyzedLines = (memberExpression: MemberExpression): AnalyzedLine[] =>
-    [{line: memberExpression.loc.start.line, type: memberExpression.type, name: EMPTY, condition: EMPTY, value: EMPTY}];
+    [{line: memberExpression.loc.start.line, type: memberExpression.type, name: getNameOfAssignable(memberExpression), condition: EMPTY, value: EMPTY}];
 
 const doWhileStatementToAnalyzedLines = (doWhileStatement: DoWhileStatement): AnalyzedLine[] =>
     [{line: doWhileStatement.loc.start.line, type: doWhileStatement.type, name: EMPTY, condition: getValOfValExp(doWhileStatement.test), value: EMPTY}];
@@ -321,19 +339,27 @@ const programToAnalyzedLines = (program: Program): AnalyzedLine[] =>
     program.body.length > 0 ? program.body.map((exp: Expression) => getAllAnalyzedLines(exp)).reduce(concatAnalyzedLines) : [];
 
 const getAllAnalyzedLines = (exp: Expression): AnalyzedLine[] =>
-    isExpressionStatement(exp) ? getAllAnalyzedLines(exp.expression) :
-    isFunctionDeclaration(exp) ? getAnalyzedLinesFromFunctionDeclaration(exp) :
-    isVariableDeclaration(exp) ? variableDeclarationToAnalyzedLines(exp) :
-    isLiteral(exp) ? literalExpressionToAnalyzedLines(exp) :
-    isIdentifier(exp) ? identifierToAnalyzedLines(exp) :
-    isValueExpression(exp) ? valueExpressionToAnalyzedLines(exp) :
-    isAssignmentExpression(exp) ? assignmentExpressionToAnalyzedLines(exp) :
-    isReturnStatement(exp) ? returnStatementToAnalyzedLines(exp) :
-    isWhileStatement(exp) ? getAnalyzedLinesFromWhileStatement(exp) :
-    isDoWhileStatement(exp) ? getAnalyzedLinesFromDoWhileStatement(exp) :
-    isForStatement(exp) ? getAnalyzedLinesFromForStatement(exp) :
-    isBreakStatement(exp) ? breakStatementToAnalyzedLines(exp) :
-    getAnalyzedLinesFromIfStatement(exp);
+    isAtomicExpression(exp) ? getAnalyzedLinesFromAtomicExpression(exp) :
+    getAnalyzedLinesFromCompoundExpression(exp);
+
+
+const getAnalyzedLinesFromAtomicExpression = (a: AtomicExpression): AnalyzedLine[] =>
+    isVariableDeclaration(a) ? variableDeclarationToAnalyzedLines(a) :
+    isAssignmentExpression(a) ? assignmentExpressionToAnalyzedLines(a) :
+    isReturnStatement(a) ? returnStatementToAnalyzedLines(a) :
+    breakStatementToAnalyzedLines(a);
+
+const getAnalyzedLinesFromCompoundExpression = (comp: CompoundExpression): AnalyzedLine[] =>
+    isExpressionStatement(comp) ? getAllAnalyzedLines(comp.expression) :
+    isFunctionDeclaration(comp) ? getAnalyzedLinesFromFunctionDeclaration(comp) :
+    isValueExpression(comp) ? valueExpressionToAnalyzedLines(comp) :
+    isLoopStatement(comp) ? getAnalyzedLinesFromLoopStatement(comp) :
+    getAnalyzedLinesFromIfStatement(comp);
+
+const getAnalyzedLinesFromLoopStatement = (loop: LoopStatement): AnalyzedLine[] =>
+    isWhileStatement(loop) ? getAnalyzedLinesFromWhileStatement(loop) :
+    isDoWhileStatement(loop) ? getAnalyzedLinesFromDoWhileStatement(loop) :
+    getAnalyzedLinesFromForStatement(loop);
 
 const getAnalyzedLinesFromBody = (b: Body): AnalyzedLine[] =>
     isBlockStatement(b) ? b.body.map((exp: Expression) => getAllAnalyzedLines(exp)).reduce(concatAnalyzedLines) :
